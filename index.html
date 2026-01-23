@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 Rush Throwdown Leader Board - Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #111827; color: #d1d5db; }
+        .tab { transition: all 0.2s ease-in-out; }
+        .tab.active { color: #facc15; border-color: #facc15; }
+        .loader { border: 4px solid #4b5563; border-top: 4px solid #facc15; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .details-row.hidden, #wod-content.hidden { display: none; }
+        
+        /* 💡 하이라이트 및 랭킹 스타일 */
+        .highlight { background-color: #10b981 !important; color: #ffffff !important; font-weight: 700 !important; }
+        .border-gold { border-left: 4px solid #FFD700; }
+        .border-silver { border-left: 4px solid #C0C0C0; }
+        .border-bronze { border-left: 4px solid #CD7F32; }
+        
+        /* 팀 아이콘 스타일 */
+        .team-icon {
+            width: 24px; height: 24px; border-radius: 50%; object-fit: cover;
+            margin-left: 6px; vertical-align: middle; display: inline-block;
+        }
+
+        /* 🎨 Total 탭 전용 스타일 (이미지 배경 + 테이블 위치) */
+        .total-wrapper {
+            position: relative; width: 100%; max-width: 600px; margin: 0 auto;
+            border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .total-bg-image { width: 100%; display: block; }
+        .total-table-container {
+            position: absolute;
+            /* 💡 포스터 위 테이블 위치 조정 (필요시 여기 숫자 변경) */
+            bottom: 8%; left: 10%; width: 80%; height: 40%;
+            overflow-y: auto; background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px; padding: 5px;
+        }
+        .total-table-container::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-yellow-300 mb-2">
+               2025 Rush Throwdown Leader Board
+           </h1>
+            <h2 id="main-title" class="text-2xl sm:text-2xl font-semibold text-white mb-4">"크로스핏에 미친 우리들의 잔치날" </h2>
+            <p class="text-md sm:text-lg text-gray-400 mt-2">
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdWS7EA9ojFB_DZ1Lnjo3pLt63SSgy6t6kh2Zh86tSQYuLskQ/viewform?usp=header" target="_blank" class="inline-flex items-center gap-2 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs font-medium transition-colors border border-gray-600">
+                   👆 사이트 제목 바꾸기 링크 / 팀원의 응원 메세지를 남겨주세요!
+                </a>
+            </p>
+            <p class="text-md sm:text-lg text-gray-400 mt-2">
+                <a href="https://photos.app.goo.gl/3t1rAPziQeKiFe4A7" target="_blank" class="inline-flex items-center gap-2 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-xs font-medium transition-colors border border-gray-600">
+                   📸 2025 Rush Throwdown 사진 앨범 공유 및 구경 "Click!"
+                </a>
+            </p>
+            
+        </header>
+        <div class="border-b border-gray-700 mb-4">
+            <nav class="-mb-px flex flex-wrap justify-center space-x-2 sm:space-x-4" aria-label="Tabs">
+                <button data-tab="event1" class="tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base border-transparent text-gray-400 hover:text-white hover:border-gray-300">EVENT 1</button>
+                <button data-tab="event2" class="tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base border-transparent text-gray-400 hover:text-white hover:border-gray-300">EVENT 2</button>
+                <button data-tab="event3" class="tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base border-transparent text-gray-400 hover:text-white hover:border-gray-300">EVENT 3</button>
+                <button data-tab="event4" class="tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base border-transparent text-gray-400 hover:text-white hover:border-gray-300">EVENT 4</button>
+                <button data-tab="timetable" class="tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base border-transparent text-gray-400 hover:text-white hover:border-gray-300">TIMETABLE</button>
+                <button data-tab="total" class="tab activae whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base border-transparent text-gray-400 hover:text-white hover:border-gray-300">TOTAL</button>
+            </nav>
+        </div>
+
+        <div id="division-tabs" class="flex justify-center items-center gap-4 mb-6 hidden">
+             <button data-division="Elite" class="tab active bg-gray-700/50 text-white font-bold py-2 px-4 rounded-full text-xs sm:text-sm">Elite Division</button>
+        </div>
+
+        <div id="wod-section" class="my-6 text-center">
+            <button id="wod-toggle-button" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full text-sm transition-colors duration-200">
+                WOD DETAILS
+            </button>
+            
+            <div id="wod-heat-selectors" class="flex flex-wrap justify-center gap-2 mt-4 hidden">
+                </div>
+
+            <div id="wod-content" class="hidden mt-4 p-4 bg-gray-800 rounded-lg text-left whitespace-pre-wrap max-w-2xl mx-auto">
+            </div>
+        </div>
+
+        <div id="status" class="h-8 flex items-center justify-center text-sm text-gray-400 mb-4"></div>
+        <div id="tableContainer" class="overflow-x-auto"></div>
+    </div>
+
+    <script>
+        // --- ⚠️ 주최자 설정 부분 ⚠️ ---
+        const API_KEY = 'AIzaSyDVAAXL9Tfcqq_7RsKIVhjBZgboDCved5g'; 
+        const SPREADSHEET_ID = '18utoWLAV5n2Wknu-LdgS5rKLVdCQK0XuSrB42D_0RZw'; 
+        
+        // 🖼️ 포스터 이미지 URL (깃허브 이미지 주소로 꼭 교체!)
+        const TOTAL_POSTER_URL = "https://raw.githubusercontent.com/Seungwoo-Yoo/2025RushThrowdown/main/images/total_poster.png";
+        const SLOGAN_RANGE = "'Settings'!B4";
+        const SHEET_DATA_MAP = {
+            event1: {
+                Elite: { range: "'결과지'!A3:C6", type: 'standard', wodRange: "'결과지'!A101" },
+            },
+            event2: {
+                Elite: { range: "'결과지'!F3:L29", type: 'expandable', visibleCols: 4, wodRange: "'결과지'!B101" },
+            },
+            event3: {
+                // 💡 [수정] C101부터 C112까지 (12개) 한 번에 가져오기
+                Elite: { range: "'결과지'!N3:W16", type: 'expandable_ranked', visibleCols: 4, wodRange: "'결과지'!C101:C112" },
+            },
+            event4: {
+                // 💡 [수정] D101부터 D104까지 (4개) 한 번에 가져오기
+                Elite: { range: "'결과지'!N21:W26", type: 'expandable_ranked', visibleCols: 4, wodRange: "'결과지'!D101:D104" },
+            },
+            timetable: { Elite: { range: "'timetable'!A1:F25", type: 'timetable', wodRange: null, highlightRange: "'timetable'!G1" } },
+            total: { 
+                Elite: { 
+                    range: "'결과지'!A40:G43", 
+                    type: 'total_special', // Total 탭은 특별 처리
+                    visibleCols: 3, 
+                    hideSwitchRange: "'Settings'!B1" 
+                } 
+            },
+        };
+        
+        // 팀 이미지 설정
+        const TEAM_IMAGE_MAP = {
+            "Team Adam": "https://raw.githubusercontent.com/Seungwoo-Yoo/2025RushThrowdown/main/images/adam.png",
+            "Team Stone": "https://raw.githubusercontent.com/Seungwoo-Yoo/2025RushThrowdown/main/images/Stone.png",
+            "Team Yeonking": "https://raw.githubusercontent.com/Seungwoo-Yoo/2025RushThrowdown/main/images/yeonking.png",
+        };
+        
+        const getTeamImageHtml = (teamName) => {
+            const url = TEAM_IMAGE_MAP[teamName.trim()];
+            return url ? `<img src="${url}" alt="${teamName} icon" class="team-icon">` : '';
+        };
+
+        const tableContainer = document.getElementById('tableContainer');
+        const statusDiv = document.getElementById('status');
+        const wodSection = document.getElementById('wod-section');
+        const wodToggleButton = document.getElementById('wod-toggle-button');
+        const wodContent = document.getElementById('wod-content');
+        const REFRESH_INTERVAL = 15000;
+        let currentEvent = 'total';
+        let currentDivision = 'Elite';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!API_KEY || API_KEY.length < 10) { displayError('⚠️ API 키 확인 필요'); return; }
+            
+            if (currentEvent === 'total' || currentEvent === 'timetable') {
+                wodSection.style.display = 'none';
+            }
+
+            initializeTabs();
+            
+            // 💡 처음에 슬로건 한번 가져오기
+            fetchSlogan(); 
+            fetchAndDisplayData();
+            
+            setInterval(() => {
+                fetchAndDisplayData();
+                fetchSlogan(); // 💡 주기적으로 슬로건도 갱신 (실시간 변경 반영)
+            }, REFRESH_INTERVAL);
+        });
+
+        function initializeTabs() {
+            const mainTabs = document.querySelectorAll('button[data-tab]');
+            mainTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    currentEvent = tab.dataset.tab;
+                    wodSection.style.display = (currentEvent === 'timetable' || currentEvent === 'total') ? 'none' : 'block';
+                    wodContent.classList.add('hidden'); 
+                    mainTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    fetchAndDisplayData();
+                });
+            });
+            wodToggleButton.addEventListener('click', () => wodContent.classList.toggle('hidden'));
+        }
+
+        async function fetchSlogan() {
+            try {
+                const data = await fetchData(SLOGAN_RANGE);
+                if (data && data[0] && data[0][0]) {
+                    const newTitle = data[0][0];
+                    // 1. 화면의 큰 제목 바꾸기
+                    const titleElement = document.getElementById('main-title');
+                    if (titleElement) titleElement.textContent = newTitle;
+                    
+                    // 2. 인터넷 브라우저 탭 이름도 같이 바꾸기 (센스!)
+                    document.title = newTitle;
+                }
+            } catch (error) {
+                console.error("슬로건 로딩 실패:", error);
+            }
+        }
+
+        async function fetchAndDisplayData() {
+            showLoading();
+            const config = SHEET_DATA_MAP[currentEvent]?.Elite;
+            if (!config) return;
+
+            // Total 숨김 처리
+            if (currentEvent === 'total' && config.hideSwitchRange) {
+                try {
+                    const hideRes = await fetchData(config.hideSwitchRange);
+                    if (hideRes?.[0]?.[0]?.toLowerCase() === 'o') { displayAnnouncement("시상식때 공개 됩니다!"); return; }
+                } catch (e) { console.error(e); }
+            }
+
+            try {
+                const [data, wodData, hlData] = await Promise.all([
+                    fetchData(config.range),
+                    config.wodRange ? fetchData(config.wodRange) : null,
+                    config.highlightRange ? fetchData(config.highlightRange) : null
+                ]);
+
+                if (data) {
+                    if (config.type === 'timetable') {
+                        let hlRow = hlData?.[0]?.[0] ? parseInt(hlData[0][0]) : null;
+                        renderTimetable(data, hlRow);
+                    } else {
+                        renderTable(data, config);
+                    }
+                } else displayError('데이터 없음');
+
+                // 💡 [WOD 히트 선택 기능 로직]
+                const selectorDiv = document.getElementById('wod-heat-selectors');
+                
+                if (wodData && wodData.length > 0) {
+                    // Event 3 또는 4처럼 데이터가 여러 줄(히트별)로 온 경우
+                    if (currentEvent === 'event3' || currentEvent === 'event4') {
+                        selectorDiv.innerHTML = ''; // 기존 버튼 초기화
+                        selectorDiv.classList.remove('hidden'); // 버튼 영역 보여주기
+                        
+                        // 기본값: 첫 번째 히트 내용 보여주기
+                        if(!selectorDiv.hasAttribute('data-selected')) {
+                             wodContent.textContent = wodData[0][0] || '내용 없음';
+                        }
+
+                        // 버튼 만들기 반복문
+                        wodData.forEach((row, index) => {
+                            const heatNum = index + 1;
+                            const eventNum = (currentEvent === 'event3') ? '3' : '4';
+                            const btnLabel = `${eventNum}-${heatNum}`; // 예: 3-1, 3-2
+                            
+                            const btn = document.createElement('button');
+                            btn.className = "px-3 py-1 text-xs font-bold rounded-full border border-gray-600 text-gray-300 hover:bg-yellow-600 hover:text-white hover:border-transparent transition-all";
+                            btn.textContent = btnLabel;
+                            
+                            // 버튼 클릭 시 동작
+                            btn.onclick = () => {
+                                // 모든 버튼 스타일 초기화
+                                Array.from(selectorDiv.children).forEach(b => {
+                                    b.classList.remove('bg-yellow-500', 'text-white', 'border-transparent');
+                                    b.classList.add('text-gray-300', 'border-gray-600');
+                                });
+                                // 클릭된 버튼 스타일 강조
+                                btn.classList.add('bg-yellow-500', 'text-white', 'border-transparent');
+                                btn.classList.remove('text-gray-300', 'border-gray-600');
+                                
+                                // 내용 갈아끼우기
+                                wodContent.textContent = row[0] || '내용 없음';
+                                wodContent.classList.remove('hidden'); // 내용창 열기
+                                selectorDiv.setAttribute('data-selected', 'true'); // 선택됨 표시
+                            };
+
+                            // 첫 번째 버튼은 자동으로 선택된 상태로 시작 (원하면 주석 해제)
+                            // if (index === 0 && !selectorDiv.hasAttribute('data-selected')) btn.click();
+                            
+                            selectorDiv.appendChild(btn);
+                        });
+
+                    } else {
+                        // Event 1, 2 (단일 내용)
+                        selectorDiv.classList.add('hidden');
+                        wodContent.textContent = wodData[0][0];
+                    }
+                }
+
+                updateStatus(`업데이트: ${new Date().toLocaleTimeString()}`);
+            } catch(error) { displayError(`오류: ${error.message}`); }
+        }
+        
+        async function fetchData(range) {
+            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error?.message);
+            return data.values || null;
+        }
+
+        // --- ⚙️ 메인 렌더링 스위치 ---
+        function renderTable(data, config) {
+            if (config.type === 'total_special') {
+                renderTotalSpecial(data, config.visibleCols);
+            } else if (config.type === 'expandable_ranked') {
+                renderExpandableRankedTable(data, config.visibleCols);
+            } else if (config.type === 'expandable') {
+                renderExpandableTable(data, config.visibleCols);
+            } else {
+                renderStandardTable(data);
+            }
+        }
+
+        // 🏆 [최종 완성] 2열 여백을 살짝(pl-3) 줘서 답답함 해소!
+        function renderTotalSpecial(data, visibleCols) {
+            tableContainer.innerHTML = '';
+            
+            const wrapper = document.createElement('div'); wrapper.className = 'total-wrapper';
+            const img = document.createElement('img'); img.src = TOTAL_POSTER_URL; img.className = 'total-bg-image';
+            const tableBox = document.createElement('div'); tableBox.className = 'total-table-container';
+
+            const table = document.createElement('table');
+            table.className = "min-w-full divide-y divide-gray-600 table-fixed";
+            const tbody = document.createElement('tbody');
+
+            const allHeaders = data[0];
+
+            for (let i = 1; i < data.length; i++) {
+                const rowData = data[i];
+                if (!rowData.some(c => c && c.trim() !== '')) continue;
+
+                const rank = rowData[0] || '-';
+                const teamName = rowData[1] || 'Team';
+                const score = rowData[2] || '0';
+
+                const tr = document.createElement('tr');
+                tr.className = "cursor-pointer hover:bg-white/10 border-b border-gray-700/50";
+                
+                let rankIcon = rank;
+                if(rank=='1') rankIcon='🥇'; else if(rank=='2') rankIcon='🥈'; else if(rank=='3') rankIcon='🥉';
+                
+                const teamImgTag = getTeamImageHtml(teamName);
+
+                tr.innerHTML = `
+                    <td class="py-2 sm:py-3 text-center font-bold text-white w-[12%] p-0" 
+                        style="font-size: clamp(12px, 3.5vw, 20px);">
+                        ${rankIcon}
+                    </td>
+                    
+                    <td class="py-2 sm:py-3 text-gray-200 w-[68%] pl-10 sm:pl-12 whitespace-nowrap" 
+                        style="font-size: clamp(11px, 3.5vw, 18px);">
+                        
+                        <div class="flex items-center gap-0.5 sm:gap-2">
+                            <span class="font-medium tracking-tighter sm:tracking-normal">
+                                ${teamName}
+                            </span>
+                            <span class="flex-shrink-0">
+                                ${teamImgTag}
+                            </span>
+                        </div>
+                    </td>
+                    
+                    <td class="py-2 sm:py-3 text-right font-extrabold text-yellow-400 w-[20%] pr-2 sm:pr-4" 
+                        style="font-size: clamp(11px, 3.5vw, 20px);">
+                        ${score}<span class="text-[0.7em] font-normal text-gray-400 ml-0.5">PTS</span>
+                    </td>
+                `;
+
+                // 상세 정보 (숨김)
+                const detailsRow = document.createElement('tr'); detailsRow.className = "hidden details-row bg-black/70";
+                const detailsCell = document.createElement('td'); detailsCell.colSpan = 3; detailsCell.className = "p-3 sm:p-4 text-gray-300";
+                
+                let detailsHTML = '<ul class="space-y-1 sm:space-y-2" style="font-size: clamp(11px, 3vw, 16px);">';
+                for(let k=3; k<rowData.length; k++) {
+                    const header = allHeaders[k] || `Detail ${k}`;
+                    const val = rowData[k] || '-';
+                    detailsHTML += `<li><span class="text-gray-500 font-medium">${header}:</span> <span class="text-white ml-2">${val}</span></li>`;
+                }
+                detailsHTML += '</ul>';
+                detailsCell.innerHTML = detailsHTML;
+                detailsRow.appendChild(detailsCell);
+
+                tr.addEventListener('click', () => {
+                    const isHidden = detailsRow.classList.contains('hidden');
+                    tbody.querySelectorAll('.details-row').forEach(r => r.classList.add('hidden'));
+                    if(isHidden) {
+                        detailsRow.classList.remove('hidden');
+                        setTimeout(() => {
+                            detailsRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 100);
+                    }
+                });
+                tbody.append(tr, detailsRow);
+            }
+            table.appendChild(tbody); tableBox.appendChild(table); wrapper.append(img, tableBox); tableContainer.appendChild(wrapper);
+        }
+
+        // 2. Expandable Ranked (Event 3, 4)
+        function renderExpandableRankedTable(data, visibleCols) {
+            tableContainer.innerHTML = '';
+            const table = document.createElement('table'); table.className = "min-w-full divide-y divide-gray-700";
+            const thead = document.createElement('thead'); thead.className = "bg-gray-800";
+            const headerRow = document.createElement('tr');
+            
+            if (!data || !data.length) return;
+            const allHeaders = data[0];
+            const finalVisibleIndices = [0, 2, 4, 6].slice(0, visibleCols);
+            const rankIndices = [1, 3, 5]; 
+            const borderColIndices = [1, 2, 3]; 
+
+            finalVisibleIndices.forEach(i => {
+                const th = document.createElement('th'); th.className = "py-3.5 px-4 text-center text-sm font-semibold text-white";
+                let content = allHeaders[i];
+                const imgHtml = getTeamImageHtml(content);
+                th.innerHTML = imgHtml ? `${content} ${imgHtml}` : content;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            const tbody = document.createElement('tbody'); tbody.className = "divide-y divide-gray-800";
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row.some(c => c && c.trim() !== '')) continue;
+                
+                const tr = document.createElement('tr');
+                tr.className = `${(i%2===0)?'bg-white/5':'bg-transparent'} cursor-pointer hover:bg-white/10`;
+
+                finalVisibleIndices.forEach((idx, colIndex) => {
+                    const td = document.createElement('td'); td.className = "whitespace-nowrap px-4 py-4 text-sm text-center text-gray-300";
+                    let content = row[idx] || '';
+                    
+                    const borderIdx = borderColIndices.indexOf(colIndex);
+                    if (borderIdx !== -1 && borderIdx < rankIndices.length) {
+                        const rank = row[rankIndices[borderIdx]];
+                        if(rank=='1') { td.classList.add('border-gold'); content = '🥇 '+content; }
+                        else if(rank=='2') { td.classList.add('border-silver'); content = '🥈 '+content; }
+                        else if(rank=='3') { td.classList.add('border-bronze'); content = '🥉 '+content; }
+                    }
+                    td.textContent = content; tr.appendChild(td);
+                });
+
+                // 상세 정보
+                const dRow = document.createElement('tr'); dRow.className = "hidden details-row";
+                const dCell = document.createElement('td'); dCell.colSpan = visibleCols; dCell.className = "p-0";
+                const dDiv = document.createElement('div'); dDiv.className = "bg-gray-800 p-4 text-left text-sm";
+                let dHtml = '<div class="font-semibold text-white mb-2">상세 정보</div><ul class="list-disc list-inside space-y-1">';
+                [7, 8, 9].forEach(k => {
+                    if(allHeaders[k]) dHtml += `<li><span class="font-semibold text-gray-400">${allHeaders[k]}:</span> <span class="text-white">${row[k]||'N/A'}</span></li>`;
+                });
+                dHtml += '</ul>'; dDiv.innerHTML = dHtml; dCell.appendChild(dDiv); dRow.appendChild(dCell);
+                
+                tr.addEventListener('click', () => {
+                    const isHidden = dRow.classList.contains('hidden');
+                    tbody.querySelectorAll('.details-row').forEach(r => r.classList.add('hidden'));
+                    if(isHidden) dRow.classList.remove('hidden');
+                });
+                tbody.append(tr, dRow);
+            }
+            table.append(thead, tbody); tableContainer.appendChild(table);
+        }
+
+        // 3. Expandable (Event 2)
+        function renderExpandableTable(data, visibleCols) {
+            tableContainer.innerHTML = '';
+            const table = document.createElement('table'); table.className = "min-w-full divide-y divide-gray-700";
+            const thead = document.createElement('thead'); thead.className = "bg-gray-800";
+            const hRow = document.createElement('tr');
+            
+            if(!data || !data.length) return;
+            const headers = data[0].slice(0, visibleCols);
+            headers.forEach(h => {
+                const th = document.createElement('th'); th.className = "py-3.5 px-4 text-center text-sm font-semibold text-white";
+                th.innerHTML = (currentEvent==='event2') ? `${h} ${getTeamImageHtml(h)}` : h;
+                hRow.appendChild(th);
+            });
+            thead.appendChild(hRow);
+
+            const tbody = document.createElement('tbody'); tbody.className = "divide-y divide-gray-800";
+            for(let i=1; i<data.length; i++) {
+                const row = data[i]; if(!row.some(c=>c&&c.trim())) continue;
+                const tr = document.createElement('tr'); tr.className = `${(i%2===0)?'bg-white/5':'bg-transparent'} cursor-pointer hover:bg-white/10`;
+                
+                row.slice(0, visibleCols).forEach((cell, idx) => {
+                    const td = document.createElement('td'); 
+                    let cls = "px-4 py-4 text-sm text-center text-gray-300";
+                    let txt = cell || '';
+                    if (idx===0 && txt.includes('+')) { txt = txt.replace(/\s\+\s/g, '<br>+ '); cls+=" whitespace-normal"; }
+                    else if (txt.includes('(')) {
+                        const cut = txt.indexOf('(');
+                        txt = `${txt.substring(0, cut)} <span class="whitespace-normal break-words">${txt.substring(cut)}</span>`;
+                        cls+=" whitespace-normal break-words";
+                    } else { cls+=" whitespace-nowrap"; }
+                    td.className = cls; td.innerHTML = txt; tr.appendChild(td);
+                });
+
+                // 상세 정보
+                const dRow = document.createElement('tr'); dRow.className="hidden details-row";
+                const dCell = document.createElement('td'); dCell.colSpan=visibleCols; dCell.className="p-0";
+                const dDiv = document.createElement('div'); dDiv.className="bg-gray-800 p-4 text-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4";
+                
+                let dHtml = '';
+                for(let k=visibleCols; k<row.length; k++) {
+                    dHtml += `<div><span class="font-semibold text-gray-400">${data[0][k]}:</span> <span class="text-white">${row[k]||'N/A'}</span></div>`;
+                }
+                dDiv.innerHTML = dHtml; dCell.appendChild(dDiv); dRow.appendChild(dCell);
+                
+                tr.addEventListener('click', () => {
+                    const isHidden = dRow.classList.contains('hidden');
+                    tbody.querySelectorAll('.details-row').forEach(r => r.classList.add('hidden'));
+                    if(isHidden) dRow.classList.remove('hidden');
+                });
+                tbody.append(tr, dRow);
+            }
+            table.append(thead, tbody); tableContainer.appendChild(table);
+        }
+
+        // 4. Timetable
+        function renderTimetable(data, highlightRowNumber) {
+            tableContainer.innerHTML = '';
+            const table = document.createElement('table'); table.className = "min-w-full divide-y divide-gray-700 table-fixed";
+            const thead = document.createElement('thead'); thead.className = "bg-gray-800";
+            const hRow = document.createElement('tr');
+            if(!data || !data.length) return;
+            data[0].forEach(h => {
+                const th = document.createElement('th'); th.className="py-3.5 px-4 text-center text-sm font-semibold text-white"; th.textContent=h; hRow.appendChild(th);
+            });
+            thead.appendChild(hRow);
+
+            const tbody = document.createElement('tbody'); tbody.className = "divide-y divide-gray-800";
+            for(let i=1; i<data.length; i++) {
+                const row = data[i]; if(!row.some(c=>c&&c.trim())) continue;
+                const tr = document.createElement('tr');
+                const isHl = (i===highlightRowNumber);
+                tr.className = `${(i%2===0)?'bg-white/5':'bg-transparent'} hover:bg-white/10 ${isHl?'highlight':''}`;
+                
+                row.forEach((cell, idx) => {
+                    const td = document.createElement('td'); td.className=`px-2 py-4 text-sm text-center ${isHl?'text-white':'text-gray-300'} break-words`;
+                    let txt = cell || '';
+                    if(idx===0) txt = txt.replace(' ', '<br>');
+                    if(idx===1) txt = txt.replace('-', '<br>');
+                    td.innerHTML = txt; tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            }
+            table.append(thead, tbody); tableContainer.appendChild(table);
+        }
+
+        // 5. Standard (Event 1)
+        function renderStandardTable(data) {
+            tableContainer.innerHTML = '';
+            const table = document.createElement('table'); table.className = "min-w-full divide-y divide-gray-700";
+            const thead = document.createElement('thead'); thead.className="bg-gray-800";
+            const hRow = document.createElement('tr');
+            if(!data || !data.length) return;
+            data[0].forEach(h => {
+                const th = document.createElement('th'); th.className="py-3.5 px-4 text-center text-sm font-semibold text-white"; th.textContent=h; hRow.appendChild(th);
+            });
+            thead.appendChild(hRow);
+
+            const tbody = document.createElement('tbody'); tbody.className="divide-y divide-gray-800";
+            for(let i=1; i<data.length; i++){
+                const row = data[i]; if(!row.some(c=>c&&c.trim())) continue;
+                const tr = document.createElement('tr'); tr.className=`${(i%2===0)?'bg-white/5':'bg-transparent'} hover:bg-white/10`;
+                const rank = row[0]?String(row[0]).trim():'';
+                
+                row.forEach((cell, idx) => {
+                    const td = document.createElement('td'); td.className="whitespace-nowrap px-4 py-4 text-sm text-center text-gray-300";
+                    let content = cell||'';
+                    if(idx===1) {
+                        if(rank=='1') content = '🥇 '+content;
+                        else if(rank=='2') content = '🥈 '+content;
+                        else if(rank=='3') content = '🥉 '+content;
+                        content += getTeamImageHtml(cell);
+                        td.innerHTML = content;
+                    } else td.textContent = content;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            }
+            table.append(thead, tbody); tableContainer.appendChild(table);
+        }
+
+        function showLoading() { statusDiv.innerHTML = '<div class="loader mx-auto"></div>'; }
+        function updateStatus(msg) { statusDiv.innerHTML = msg; }
+        function displayError(msg) { statusDiv.innerHTML = `<span class="text-red-400">${msg}</span>`; wodSection.style.display='none'; }
+        function displayAnnouncement(msg) { tableContainer.innerHTML = `<div class="p-10 text-center text-2xl text-white font-bold">${msg}</div>`; wodSection.style.display='none'; }
+    </script>
+</body>
+</html>
