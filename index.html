@@ -88,11 +88,11 @@
 
         <div class="border-b border-gray-700 mb-4 overflow-x-auto">
             <nav class="flex justify-between sm:justify-center min-w-full" aria-label="Tabs">
-                <button data-tab="list" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">명단</button>
+                <button data-tab="list" class="tab active flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">명단</button>
                 <button data-tab="event1" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">EV 1</button>
                 <button data-tab="event2" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">EV 2</button>
                 <button data-tab="event3" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">EV 3</button>
-                <button data-tab="total" class="tab active flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">TOTAL</button>
+                <button data-tab="total" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">TOTAL</button>
             </nav>
         </div>
 
@@ -122,7 +122,7 @@
     const SPREADSHEET_ID = '18utoWLAV5n2Wknu-LdgS5rKLVdCQK0XuSrB42D_0RZw'; 
     
     let currentBranch = '중화';
-    let currentEvent = 'total';
+    let currentEvent = 'list';
     let currentGender = 'male'; // ✨ 성별 상태 추가 (기본: 남자)
     const REFRESH_INTERVAL = 15000;
 
