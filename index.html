@@ -71,7 +71,7 @@
                2026 CrossFit Rush Open Leaderboard
             </h1>
             <h2 id="main-title" class="text-sm sm:text-xl font-medium text-gray-300 mb-4">
-                "2026 OPEN : 도전하는 순간, 어제보다 강해진 나를 만나는 축제"
+                "크로스핏에 미친 우리들의 잔치날"
             </h2>
 
             <div class="flex justify-center gap-2 mb-4">
@@ -88,11 +88,11 @@
 
         <div class="border-b border-gray-700 mb-4 overflow-x-auto">
             <nav class="flex justify-between sm:justify-center min-w-full" aria-label="Tabs">
-                <button data-tab="list" class="tab active flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">명단</button>
+                <button data-tab="list" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">명단</button>
                 <button data-tab="event1" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">EV 1</button>
                 <button data-tab="event2" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">EV 2</button>
                 <button data-tab="event3" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">EV 3</button>
-                <button data-tab="total" class="tab flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">TOTAL</button>
+                <button data-tab="total" class="tab active flex-1 py-2 text-xs sm:text-base text-center whitespace-nowrap">TOTAL</button>
             </nav>
         </div>
 
@@ -117,35 +117,35 @@
     </div>
 
 <script>
-    // --- 설정 부분 ---
+// --- 설정 부분 ---
     const API_KEY = 'AIzaSyDVAAXL9Tfcqq_7RsKIVhjBZgboDCved5g'; 
     const SPREADSHEET_ID = '18utoWLAV5n2Wknu-LdgS5rKLVdCQK0XuSrB42D_0RZw'; 
     
     let currentBranch = '중화';
-    let currentEvent = 'list';
+    let currentEvent = 'total';
     let currentGender = 'male'; // ✨ 성별 상태 추가 (기본: 남자)
     const REFRESH_INTERVAL = 15000;
 
-    // ✨ 범위 수정: 남자(A~E) + 여자(F~J)를 모두 가져오기 위해 J열까지 확장
+    // 기존 SHEET_CONFIG 부분을 아래처럼 변경
     const SHEET_CONFIG = {
-            list:   { prefix: '명단',   range: '!A1:J100', type: 'standard', wodCell: null },
-            event1: { prefix: 'Event1', range: '!A1:J100', type: 'standard', wodCell: '!L1' },
-            event2: { prefix: 'Event2', range: '!A1:J100', type: 'standard', wodCell: '!L1' },
-            event3: { prefix: 'Event3', range: '!A1:J100', type: 'standard', wodCell: '!L1' },
-            // ✨ Total 범위 확장 (A~T열까지 가져옴)
-            total:  { prefix: 'Total',  range: '!A1:T100', type: 'total_special', wodCell: null }
-        };
-        
+        list:   { prefix: '명단',   range: '!A1:C100', type: 'standard', wodCell: null },
+        event1: { prefix: 'Event1', range: '!A1:J100', type: 'standard', wodCell: '!L1' },
+        event2: { prefix: 'Event2', range: '!A1:J100', type: 'standard', wodCell: '!L1' },
+        event3: { prefix: 'Event3', range: '!A1:J100', type: 'standard', wodCell: '!L1' },
+        // ✨ Total 범위를 W열(한국 기록)까지 가져오도록 확장!
+        total:  { prefix: 'Total',  range: '!A1:W100', type: 'total_special', wodCell: null }
+    };
+       
     const tableContainer = document.getElementById('tableContainer');
     const statusDiv = document.getElementById('status');
     const wodSection = document.getElementById('wod-section');
     const wodContent = document.getElementById('wod-content');
     const wodToggleButton = document.getElementById('wod-toggle-button');
-    const genderTabs = document.getElementById('gender-tabs'); // ✨ 추가
+    const genderTabs = document.getElementById('gender-tabs'); 
 
     document.addEventListener('DOMContentLoaded', () => {
         initializeTabs();
-        updateGenderTabVisibility(); // 초기 성별 탭 표시 여부 설정
+        updateGenderTabVisibility(); 
         fetchAndDisplayData();
         setInterval(() => fetchAndDisplayData(), REFRESH_INTERVAL);
     });
@@ -157,11 +157,9 @@
         fetchAndDisplayData();
     }
 
-    // ✨ 성별 변경 함수 추가
     function changeGender(gender) {
         currentGender = gender;
         
-        // 버튼 스타일 업데이트
         document.querySelectorAll('.gender-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn-${gender}`).classList.add('active');
         
@@ -176,17 +174,14 @@
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
-                updateGenderTabVisibility(); // ✨ 탭 바뀔 때 성별 탭 표시 여부 체크
+                updateGenderTabVisibility(); 
                 fetchAndDisplayData();
             });
         });
         wodToggleButton.addEventListener('click', () => wodContent.classList.toggle('hidden'));
     }
 
-    // ✨ 성별 탭 보이기/숨기기 로직
     function updateGenderTabVisibility() {
-        // 명단(list) 탭에서는 성별 탭 숨김 (기존 방식대로 전체 출력한다고 가정)
-        // Event 1,2,3 및 Total 탭에서는 성별 탭 보임
         if (currentEvent === 'list') {
             genderTabs.classList.add('hidden');
             wodSection.style.display = 'none';
@@ -205,13 +200,17 @@
         showLoading();
         const config = SHEET_CONFIG[currentEvent];
         if (!config) return;
-        const sheetName = `${config.prefix}_${currentBranch}`;
+        
+// ✨ [수정] Total 탭일 경우 시트 이름을 Total_지점명_성별 (예: Total_중화_남자) 순서로 변경
+        let sheetName = `${config.prefix}_${currentBranch}`;
+        if (currentEvent === 'total') {
+            const genderSuffix = currentGender === 'male' ? '남자' : '여자';
+            sheetName = `${config.prefix}_${currentBranch}_${genderSuffix}`;
+        }
         
         try {
-            // 데이터 전체(A~J) 가져오기
             const rawData = await fetchData(`'${sheetName}'${config.range}`);
             
-            // WOD 설명 가져오기
             if (config.wodCell) {
                 try {
                     const wodRes = await fetchData(`'${sheetName}'${config.wodCell}`);
@@ -222,27 +221,18 @@
             if (rawData && rawData.length > 0) {
                 let displayData = [];
 
-                // ✨ [핵심] 성별에 따라 데이터 자르기 (Slicing)
-                // 명단(list) 탭은 성별 구분 없이 전체를 보여준다면 rawData 그대로 사용
-                // Event/Total 탭은 성별에 따라 자름
-                // ✨ [수정됨] 성별 및 탭에 따라 데이터 자르기
+                // fetchAndDisplayData() 함수 내부
                 if (currentEvent === 'list') {
                     displayData = rawData; 
                 } else if (currentEvent === 'total') {
-                    if (currentGender === 'male') {
-                        // 남자 Total: A~I열 (0~8 인덱스, 총 9개)
-                        displayData = rawData.map(row => row.slice(0, 9));
-                    } else {
-                        // 여자 Total: K~S열 (10~18 인덱스, 총 9개) - J열(9)은 빈칸이므로 건너뜀
-                        displayData = rawData.map(row => row.slice(10, 19));
-                    }
+                    // ✨ W열(22번 인덱스)까지 가져오기 위해 23으로 변경
+                    displayData = rawData.map(row => row.slice(0, 23)); 
                 } else {
-                    // Event 1, 2, 3
                     if (currentGender === 'male') displayData = rawData.map(row => row.slice(0, 5));
                     else displayData = rawData.map(row => row.slice(5, 10));
                 }
 
-                // 잘라낸 데이터가 비어있는 행 제거
+                // 빈 행 제거
                 displayData = displayData.filter(row => row.some(c => c && c.trim() !== ''));
 
                 if (displayData.length > 0) {
@@ -271,11 +261,7 @@
         return json.values;
     }
 
-    // ... (renderStandardTable, renderTotalSpecial, getTeamImageHtml, showLoading 등 기존 함수는 그대로 유지) ...
-    // 아래에 기존 render 함수들을 그대로 두시면 됩니다.
-    
     function renderStandardTable(data) {
-        // (이전에 수정해드린 함수 내용 그대로 사용)
         tableContainer.innerHTML = '';
         const table = document.createElement('table');
         table.className = "w-full divide-y divide-gray-700 text-xs sm:text-sm table-fixed"; 
@@ -350,108 +336,194 @@
     }
     
     function renderTotalSpecial(data) {
-            tableContainer.innerHTML = '';
-            const table = document.createElement('table');
-            table.className = "w-full text-xs sm:text-sm table-fixed border-collapse"; // border-collapse 추가
+        tableContainer.innerHTML = '';
+        const table = document.createElement('table');
+        table.className = "w-full text-xs sm:text-sm table-fixed border-collapse"; 
 
-            const thead = document.createElement('thead');
-            thead.className = "bg-gray-800 text-gray-200";
+        const thead = document.createElement('thead');
+        thead.className = "bg-gray-800 text-gray-200";
+        
+        thead.innerHTML = `
+            <tr>
+                <th class="py-3 w-[15%] text-center font-semibold">순위</th>
+                <th class="py-3 w-[60%] text-center font-semibold">이름</th>
+                <th class="py-3 w-[25%] text-center font-semibold">Total 점수</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        tbody.className = "divide-y divide-gray-800";
+
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            if (!row[1] || row[1] === '') continue; 
+
+            const rank = row[0] || '-';
+            const name = row[1] || '';
+            const score = row[2] || '0';
             
-            // ✨ 헤더는 깔끔하게 3개만!
-            thead.innerHTML = `
-                <tr>
-                    <th class="py-3 w-[15%] text-center font-semibold">순위</th>
-                    <th class="py-3 w-[60%] text-center font-semibold">이름</th>
-                    <th class="py-3 w-[25%] text-center font-semibold">Total 점수</th>
-                </tr>
+            // 📍 지점 기록 (D~I)
+            const e1_rank = row[3] || '-', e1_rec = row[4] || '-';
+            const e2_rank = row[5] || '-', e2_rec = row[6] || '-';
+            const e3_rank = row[7] || '-', e3_rec = row[8] || '-';
+
+            // 🌎 세계 기록 (K~P -> 인덱스 10~15)
+            const w1_rank = row[10] || '-', w1_rec = row[11] || '-';
+            const w2_rank = row[12] || '-', w2_rec = row[13] || '-';
+            const w3_rank = row[14] || '-', w3_rec = row[15] || '-';
+
+            // 🇰🇷 한국 기록 (R~W -> 인덱스 17~22)
+            const k1_rank = row[17] || '-', k1_rec = row[18] || '-';
+            const k2_rank = row[19] || '-', k2_rec = row[20] || '-';
+            const k3_rank = row[21] || '-', k3_rec = row[22] || '-';
+
+            let rankDisplay = `<span class="text-gray-300 font-bold">${rank}</span>`;
+            if(rank === '1') rankDisplay = '<span class="text-lg">🥇</span>';
+            else if(rank === '2') rankDisplay = '<span class="text-lg">🥈</span>';
+            else if(rank === '3') rankDisplay = '<span class="text-lg">🥉</span>';
+
+            // --- 메인 행 ---
+            const mainTr = document.createElement('tr');
+            mainTr.className = "cursor-pointer transition-colors border-b border-gray-800 h-14";
+            mainTr.onclick = () => toggleDetail(i); 
+
+            mainTr.innerHTML = `
+                <td class="text-center py-2">${rankDisplay}</td>
+                <td class="text-center py-2 font-medium text-white">
+                    <div class="flex items-center justify-center gap-1">
+                        ${name} <span class="text-[10px] text-gray-500">▼</span>
+                    </div>
+                </td>
+                <td class="text-center py-2 font-bold text-yellow-400 text-base">${score}</td>
             `;
-            table.appendChild(thead);
 
-            const tbody = document.createElement('tbody');
-            tbody.className = "divide-y divide-gray-800";
+            // --- 상세 행 (클릭 영역 추가) ---
+            const detailTr = document.createElement('tr');
+            detailTr.id = `detail-${i}`;
+            detailTr.className = "hidden detail-row"; 
 
-            // 데이터 반복 (1행부터 시작)
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row[1] || row[1] === '') continue; // 이름 없으면 패스
+            // 깔끔하게 등수를 표시해주는 도우미 함수 (100이나 - 이면 - 출력)
+            const fmtRank = (r) => (r === '100' || r === '-' || !r) ? '-' : r + '등';
 
-                // 데이터 추출
-                const rank = row[0] || '-';
-                const name = row[1] || '';
-                const score = row[2] || '0';
-                
-                // 상세 데이터 (Event 1, 2, 3)
-                const e1_rank = row[3], e1_rec = row[4];
-                const e2_rank = row[5], e2_rec = row[6];
-                const e3_rank = row[7], e3_rec = row[8];
-
-                // 🥇 메달 처리
-                let rankDisplay = `<span class="text-gray-300 font-bold">${rank}</span>`;
-                if(rank === '1') rankDisplay = '<span class="text-lg">🥇</span>';
-                else if(rank === '2') rankDisplay = '<span class="text-lg">🥈</span>';
-                else if(rank === '3') rankDisplay = '<span class="text-lg">🥉</span>';
-
-                // --- [1] 메인 행 (항상 보임) ---
-                const mainTr = document.createElement('tr');
-                mainTr.className = "cursor-pointer transition-colors border-b border-gray-800 h-14";
-                mainTr.onclick = () => toggleDetail(i); // 클릭 이벤트 연결
-
-                mainTr.innerHTML = `
-                    <td class="text-center py-2">${rankDisplay}</td>
-                    <td class="text-center py-2 font-medium text-white">
-                        <div class="flex items-center justify-center gap-1">
-                            ${name} <span class="text-[10px] text-gray-500">▼</span>
+            detailTr.innerHTML = `
+                <td colspan="3" class="p-0">
+                    <div class="cursor-pointer bg-gray-800/60 hover:bg-gray-800 transition-colors p-3" onclick="cycleDetailView(${i})">
+                        
+                        <div class="text-center text-[10px] text-gray-400 mb-2 flex justify-center items-center gap-2">
+                            <span id="badge-local-${i}" class="px-2 py-0.5 rounded bg-yellow-600 text-white font-bold">지점 등수</span>
+                            <span id="badge-world-${i}" class="px-2 py-0.5 rounded bg-gray-700 text-gray-400">세계 등수</span>
+                            <span id="badge-korea-${i}" class="px-2 py-0.5 rounded bg-gray-700 text-gray-400">한국 등수</span>
+                            <span class="ml-1 text-gray-500">🔄 탭(클릭)해서 변경</span>
                         </div>
-                    </td>
-                    <td class="text-center py-2 font-bold text-yellow-400 text-base">${score}</td>
-                `;
 
-                // --- [2] 상세 행 (평소엔 숨김 class="hidden") ---
-                const detailTr = document.createElement('tr');
-                detailTr.id = `detail-${i}`;
-                detailTr.className = "hidden detail-row"; // 기본적으로 숨김
-
-                detailTr.innerHTML = `
-                    <td colspan="3">
-                        <div class="detail-content grid grid-cols-3 gap-2 text-center">
-                            <div class="bg-gray-800/50 rounded p-2 border border-gray-700">
+                        <div id="view-local-${i}" class="detail-content grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
                                 <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 1</div>
-                                <div class="text-white font-bold">${e1_rank === '100' ? '-' : e1_rank + '등'}</div>
+                                <div class="text-white font-bold">${fmtRank(e1_rank)}</div>
                                 <div class="text-gray-400 text-[10px]">(${e1_rec})</div>
                             </div>
-                            <div class="bg-gray-800/50 rounded p-2 border border-gray-700">
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
                                 <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 2</div>
-                                <div class="text-white font-bold">${e2_rank === '100' ? '-' : e2_rank + '등'}</div>
+                                <div class="text-white font-bold">${fmtRank(e2_rank)}</div>
                                 <div class="text-gray-400 text-[10px]">(${e2_rec})</div>
                             </div>
-                            <div class="bg-gray-800/50 rounded p-2 border border-gray-700">
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
                                 <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 3</div>
-                                <div class="text-white font-bold">${e3_rank === '100' ? '-' : e3_rank + '등'}</div>
+                                <div class="text-white font-bold">${fmtRank(e3_rank)}</div>
                                 <div class="text-gray-400 text-[10px]">(${e3_rec})</div>
                             </div>
                         </div>
-                    </td>
-                `;
 
-                tbody.appendChild(mainTr);
-                tbody.appendChild(detailTr);
+                        <div id="view-world-${i}" class="hidden detail-content grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
+                                <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 1 (🌎)</div>
+                                <div class="text-white font-bold">${fmtRank(w1_rank)}</div>
+                                <div class="text-gray-400 text-[10px]">(${w1_rec})</div>
+                            </div>
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
+                                <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 2 (🌎)</div>
+                                <div class="text-white font-bold">${fmtRank(w2_rank)}</div>
+                                <div class="text-gray-400 text-[10px]">(${w2_rec})</div>
+                            </div>
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
+                                <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 3 (🌎)</div>
+                                <div class="text-white font-bold">${fmtRank(w3_rank)}</div>
+                                <div class="text-gray-400 text-[10px]">(${w3_rec})</div>
+                            </div>
+                        </div>
+
+                        <div id="view-korea-${i}" class="hidden detail-content grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
+                                <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 1 (🇰🇷)</div>
+                                <div class="text-white font-bold">${fmtRank(k1_rank)}</div>
+                                <div class="text-gray-400 text-[10px]">(${k1_rec})</div>
+                            </div>
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
+                                <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 2 (🇰🇷)</div>
+                                <div class="text-white font-bold">${fmtRank(k2_rank)}</div>
+                                <div class="text-gray-400 text-[10px]">(${k2_rec})</div>
+                            </div>
+                            <div class="bg-gray-800/80 rounded p-2 border border-gray-700">
+                                <div class="text-yellow-500 font-bold text-[10px] sm:text-xs mb-1">Event 3 (🇰🇷)</div>
+                                <div class="text-white font-bold">${fmtRank(k3_rank)}</div>
+                                <div class="text-gray-400 text-[10px]">(${k3_rec})</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </td>
+            `;
+
+            tbody.appendChild(mainTr);
+            tbody.appendChild(detailTr);
+        }
+        
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+    }
+
+    function toggleDetail(index) {
+        const detailRow = document.getElementById(`detail-${index}`);
+        if (detailRow.classList.contains('hidden')) {
+            detailRow.classList.remove('hidden');
+        } else {
+            detailRow.classList.add('hidden');
+        }
+    }
+
+    // ✨ 상세 보기 영역을 클릭할 때마다 화면을 번갈아가며 보여주는 함수
+    function cycleDetailView(index) {
+        const views = ['local', 'world', 'korea'];
+        let currentIndex = 0;
+
+        // 현재 어떤 화면이 켜져 있는지 확인
+        for (let i = 0; i < views.length; i++) {
+            const viewEl = document.getElementById(`view-${views[i]}-${index}`);
+            if (viewEl && !viewEl.classList.contains('hidden')) {
+                currentIndex = i;
+                break;
             }
-            
-            table.appendChild(thead);
-            table.appendChild(tbody);
-            tableContainer.appendChild(table);
         }
 
-        // ✨ 토글 함수 추가 (script 태그 안, 다른 함수들 옆에 추가하세요)
-        function toggleDetail(index) {
-            const detailRow = document.getElementById(`detail-${index}`);
-            if (detailRow.classList.contains('hidden')) {
-                detailRow.classList.remove('hidden');
-            } else {
-                detailRow.classList.add('hidden');
-            }
-        }
+        // 다음 화면 인덱스 계산 (0 -> 1 -> 2 -> 0)
+        const nextIndex = (currentIndex + 1) % views.length;
 
+        // 모든 화면 숨기고 뱃지 비활성화
+        views.forEach(view => {
+            document.getElementById(`view-${view}-${index}`).classList.add('hidden');
+            const badge = document.getElementById(`badge-${view}-${index}`);
+            badge.classList.remove('bg-yellow-600', 'text-white', 'font-bold');
+            badge.classList.add('bg-gray-700', 'text-gray-400');
+        });
+
+        // 다음 화면 보여주고 뱃지 활성화
+        document.getElementById(`view-${views[nextIndex]}-${index}`).classList.remove('hidden');
+        const activeBadge = document.getElementById(`badge-${views[nextIndex]}-${index}`);
+        activeBadge.classList.remove('bg-gray-700', 'text-gray-400');
+        activeBadge.classList.add('bg-yellow-600', 'text-white', 'font-bold');
+    }
 
     function showLoading() { statusDiv.innerHTML = '<div class="loader mx-auto"></div>'; }
     function updateStatus(msg) { statusDiv.innerHTML = msg; }
